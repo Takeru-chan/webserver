@@ -30,12 +30,12 @@ freebsd-update install
 /etc/ssh/sshd_configにて設定。  
 
 ```
-Port 20022									// 接続ポートを標準外の20022にして攻撃されにくく
-Protocol 2									// ssh2接続のみ許可
-PermitRootLogin no					// rootでのログインを拒否
+Port 20022                  // 接続ポートを標準外の20022にして攻撃されにくく
+Protocol 2                  // ssh2接続のみ許可
+PermitRootLogin no          // rootでのログインを拒否
 PasswordAuthentication yes  // パスワード認証を許可
-PermitEmptyPasswords no			// パスワードなしの接続を拒否
-AllowUsers general_user			// ログインユーザーをgeneral_userに限定
+PermitEmptyPasswords no     // パスワードなしの接続を拒否
+AllowUsers general_user     // ログインユーザーをgeneral_userに限定
 ```
 
 接続ポートを標準外にしたので接続時はポート指定が必要。  
