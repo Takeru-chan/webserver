@@ -72,3 +72,9 @@ firewall_logging="YES"
 ```
 kill -HUP 1
 ```
+
+## nginxの設定
+オフィシャルサイトを参考にnginxをインストール。  
+
+### マルチサイトの設定
+### https対応
