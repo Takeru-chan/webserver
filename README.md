@@ -27,7 +27,7 @@ freebsd-update install
 ```
 
 ### sshの有効化
-/etc/ssh/sshd_configにて設定。  
+/etc/ssh/sshd\_configにて設定。  
 
 ```
 Port 20022                  // 接続ポートを標準外の20022にして攻撃されにくく
@@ -76,7 +76,71 @@ kill -HUP 1
 ## nginxの設定
 オフィシャルサイトを参考にnginxをインストール。  
 
+### WordPress用の設定
+phpを動かすための設定が9から25行目にあるlocationディレクティブ。  
+```
+server {
+  listen       80;
+  server_name  .example.com;
+  root   /usr/local/www/example;
+  index  index.php index.html index.htm;
+
+  location = /wp-config.php { deny all; }
+  location = /xmlrpc.php { deny all; }
+  location = /wp-login.php {
+    auth_basic "Restricted";
+    auth_basic_user_file /home/user/.htpasswd;
+    fastcgi_pass unix:/var/run/php-fpm.sock;
+    fastcgi_param SCRIPT_FILENAME /usr/local/www/example/$fastcgi_script_name;
+    include fastcgi_params;
+    fastcgi_param HTTPS on;
+  }
+  location / {
+    try_files $uri $uri/ $uri.php?$args /index.php?&$args;
+  }
+  location ~ \.php$ {
+    fastcgi_index index.php;
+    fastcgi_pass unix:/var/run/php-fpm.sock;
+    fastcgi_param SCRIPT_FILENAME /usr/local/www/example/$fastcgi_script_name;
+    include fastcgi_params;
+    fastcgi_param HTTPS on;
+  }
+}
+```
+セキュリティを確保するため、7,8行目のようにファイルへのアクセスを禁止。
+また9行目のlocationディレクティブに含まれているBasic認証の設定（10,11行目）によってWordPressのログイン画面を表示するための一手間を発生させてログイン画面への攻撃を防止。
+.htpasswdファイルはhtpasswdコマンドで作成。
+
 ### マルチサイトの設定
+nginxはSNIでマルチサイト対応できているのでドメインごとにserverブロックを追記してゆけばＯＫ。
+```
+server {
+  listen       80;
+  server_name  .example.com;
+  root   /usr/local/www/example;
+  index  index.php index.html index.htm;
+  ...
+
+}
+server {
+  listen       80;
+  server_name  .example2.com;
+  root   /usr/local/www/example2;
+  index  index.php index.html index.htm;
+  ...
+
+}
+server {
+  listen       80;
+  server_name  .example3.com;
+  root   /usr/local/www/example3;
+  index  index.php index.html index.htm;
+  ...
+
+}
+```
+
+### https対応
 まずは80番ポートへのアクセスをhttpsへリダイレクト。
 ```
 server {
@@ -110,7 +174,7 @@ cert.pemではなくfullchain.pemを参照させないとchromeやfirefoxでは�
 
 さらにセキュリティを高めるために6行目以降を記載。  
 
-### https対応
+### SSL/TSLサーバ証明書取得
 Let's EncryptでSSL/TSLサーバ証明書を発行。
 この際、httpsサイトの正規化がうまくできなかったのでSANを利用してwwwあり/なし両対応の証明書を発行。
 ```
